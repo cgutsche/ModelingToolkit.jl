@@ -96,9 +96,24 @@ function _model_macro(mod, name, expr, isconnector)
     gui_metadata = isassigned(icon) > 0 ? GUIMetadata(GlobalRef(mod, name), icon[]) :
                    GUIMetadata(GlobalRef(mod, name))
 
-    sys = :($ODESystem($Equation[equations...], $iv, variables, parameters;
-        name, systems, gui_metadata = $gui_metadata, continuous_events=continuous_events, discrete_events=discrete_events))
-
+    if c_evts == []
+        if d_evts == []
+            sys = :($ODESystem($Equation[equations...], $iv, variables, parameters;
+                name, systems, gui_metadata = $gui_metadata))
+        else
+            sys = :($ODESystem($Equation[equations...], $iv, variables, parameters;
+                name, systems, gui_metadata = $gui_metadata, discrete_events=discrete_events))
+        end
+    else
+        if d_evts == []
+            sys = :($ODESystem($Equation[equations...], $iv, variables, parameters;
+                name, systems, gui_metadata = $gui_metadata, continuous_events=continuous_events))
+        else
+            sys = :($ODESystem($Equation[equations...], $iv, variables, parameters;
+                name, systems, gui_metadata = $gui_metadata, continuous_events=continuous_events, discrete_events=discrete_events))
+        end
+    end
+    
     if ext[] === nothing
         push!(exprs.args, :(var"#___sys___" = $sys))
     else
