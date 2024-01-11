@@ -1,11 +1,4 @@
-"""
-$(TYPEDEF)
 
-ModelingToolkit component or connector with metadata
-
-# Fields
-$(FIELDS)
-"""
 struct Model{F, S}
     """The constructor that returns ODESystem."""
     f::F
@@ -42,18 +35,22 @@ function _model_macro(mod, name, expr, isconnector)
     eqs = Expr[]
     icon = Ref{Union{String, URI}}()
     ps, sps, vs, = [], [], []
+    c_evts = []
+    d_evts = []
     kwargs = Set()
 
     push!(exprs.args, :(variables = []))
     push!(exprs.args, :(parameters = []))
     push!(exprs.args, :(systems = ODESystem[]))
     push!(exprs.args, :(equations = Equation[]))
+    push!(exprs.args, :(continuous_events = []))
+    push!(exprs.args, :(discrete_events = []))
 
     Base.remove_linenums!(expr)
     for arg in expr.args
         if arg.head == :macrocall
             parse_model!(exprs.args, comps, ext, eqs, icon, vs, ps,
-                sps, dict, mod, arg, kwargs)
+                sps, c_evts, d_evts, dict, mod, arg, kwargs)
         elseif arg.head == :block
             push!(exprs.args, arg)
         elseif arg.head == :if
@@ -86,12 +83,14 @@ function _model_macro(mod, name, expr, isconnector)
     push!(exprs.args, :(push!(parameters, $(ps...))))
     push!(exprs.args, :(push!(systems, $(comps...))))
     push!(exprs.args, :(push!(variables, $(vs...))))
-
+    push!(exprs.args, :(push!(continuous_events, $(c_evts...))))
+    push!(exprs.args, :(push!(discrete_events, $(d_evts...))))
+    
     gui_metadata = isassigned(icon) > 0 ? GUIMetadata(GlobalRef(mod, name), icon[]) :
                    GUIMetadata(GlobalRef(mod, name))
 
     sys = :($ODESystem($Equation[equations...], $iv, variables, parameters;
-        name, systems, gui_metadata = $gui_metadata))
+        name, systems, gui_metadata = $gui_metadata, continuous_events=continuous_events, discrete_events=discrete_events))
 
     if ext[] === nothing
         push!(exprs.args, :(var"#___sys___" = $sys))
@@ -278,7 +277,7 @@ function get_var(mod::Module, b)
     end
 end
 
-function parse_model!(exprs, comps, ext, eqs, icon, vs, ps, sps,
+function parse_model!(exprs, comps, ext, eqs, icon, vs, ps, sps, c_evts, d_evts,
         dict, mod, arg, kwargs)
     mname = arg.args[1]
     body = arg.args[end]
@@ -294,6 +293,10 @@ function parse_model!(exprs, comps, ext, eqs, icon, vs, ps, sps,
         parse_structural_parameters!(exprs, sps, dict, mod, body, kwargs)
     elseif mname == Symbol("@equations")
         parse_equations!(exprs, eqs, dict, body)
+    elseif mname == Symbol("@continuous_events")
+        parse_continuous_events!(c_evts, dict, body)
+    elseif mname == Symbol("@discrete_events")
+        parse_discrete_events!(d_evts, dict, body)
     elseif mname == Symbol("@icon")
         isassigned(icon) && error("This model has more than one icon.")
         parse_icon!(body, dict, icon, mod)
@@ -606,6 +609,23 @@ function parse_equations!(exprs, eqs, dict, body)
                 push!(dict[:equations], readable_code.(eqs)...)
             end
         end
+    end
+end
+
+function parse_continuous_events!(c_evts, dict, body)
+    dict[:continuous_events] = []
+    Base.remove_linenums!(body)
+    for arg in body.args
+        push!(c_evts, arg)
+        push!(dict[:continuous_events], readable_code.(c_evts)...)
+    end
+end
+
+function parse_discrete_events!(d_evts, dict, body)
+    dict[:discrete_events] = []
+    Base.remove_linenums!(body)
+    for arg in body.args
+        push!(dict[:discrete_events], readable_code.(d_evts)...)
     end
 end
 
