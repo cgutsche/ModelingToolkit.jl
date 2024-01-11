@@ -1,4 +1,11 @@
+"""
+$(TYPEDEF)
 
+ModelingToolkit component or connector with metadata
+
+# Fields
+$(FIELDS)
+"""
 struct Model{F, S}
     """The constructor that returns ODESystem."""
     f::F
