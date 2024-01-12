@@ -90,29 +90,13 @@ function _model_macro(mod, name, expr, isconnector)
     push!(exprs.args, :(push!(parameters, $(ps...))))
     push!(exprs.args, :(push!(systems, $(comps...))))
     push!(exprs.args, :(push!(variables, $(vs...))))
-    push!(exprs.args, :(push!(continuous_events, $(c_evts...))))
-    push!(exprs.args, :(push!(discrete_events, $(d_evts...))))
     
     gui_metadata = isassigned(icon) > 0 ? GUIMetadata(GlobalRef(mod, name), icon[]) :
                    GUIMetadata(GlobalRef(mod, name))
 
-    if c_evts == []
-        if d_evts == []
-            sys = :($ODESystem($Equation[equations...], $iv, variables, parameters;
-                name, systems, gui_metadata = $gui_metadata))
-        else
-            sys = :($ODESystem($Equation[equations...], $iv, variables, parameters;
-                name, systems, gui_metadata = $gui_metadata, discrete_events=discrete_events))
-        end
-    else
-        if d_evts == []
-            sys = :($ODESystem($Equation[equations...], $iv, variables, parameters;
-                name, systems, gui_metadata = $gui_metadata, continuous_events=continuous_events))
-        else
-            sys = :($ODESystem($Equation[equations...], $iv, variables, parameters;
-                name, systems, gui_metadata = $gui_metadata, continuous_events=continuous_events, discrete_events=discrete_events))
-        end
-    end
+
+    sys = :($ODESystem($Equation[equations...], $iv, variables, parameters;
+        name, systems, gui_metadata = $gui_metadata))
     
     if ext[] === nothing
         push!(exprs.args, :(var"#___sys___" = $sys))
@@ -122,6 +106,12 @@ function _model_macro(mod, name, expr, isconnector)
 
     isconnector && push!(exprs.args,
         :($Setfield.@set!(var"#___sys___".connector_type=$connector_type(var"#___sys___"))))
+
+    !(c_evts==[]) && push!(exprs.args,
+        :($Setfield.@set!(var"#___sys___".continuous_events=$(c_evts...))))
+
+    !(d_evts==[]) && push!(exprs.args,
+        :($Setfield.@set!(var"#___sys___".discrete_events=$(d_evts...))))
 
     f = :($(Symbol(:__, name, :__))(; name, $(kwargs...)) = $exprs)
     :($name = $Model($f, $dict, $isconnector))
