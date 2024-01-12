@@ -88,14 +88,14 @@ function _model_macro(mod, name, expr, isconnector)
     push!(exprs.args, :(push!(parameters, $(ps...))))
     push!(exprs.args, :(push!(systems, $(comps...))))
     push!(exprs.args, :(push!(variables, $(vs...))))
-    
+
     gui_metadata = isassigned(icon) > 0 ? GUIMetadata(GlobalRef(mod, name), icon[]) :
                    GUIMetadata(GlobalRef(mod, name))
 
 
     sys = :($ODESystem($Equation[equations...], $iv, variables, parameters;
         name, systems, gui_metadata = $gui_metadata))
-    
+
     if ext[] === nothing
         push!(exprs.args, :(var"#___sys___" = $sys))
     else
