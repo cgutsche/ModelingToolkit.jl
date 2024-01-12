@@ -90,6 +90,8 @@ function _model_macro(mod, name, expr, isconnector)
     push!(exprs.args, :(push!(parameters, $(ps...))))
     push!(exprs.args, :(push!(systems, $(comps...))))
     push!(exprs.args, :(push!(variables, $(vs...))))
+    push!(exprs.args, :(push!(continuous_events, $(c_evts...))))
+    push!(exprs.args, :(push!(discrete_events, $(d_evts...))))
     
     gui_metadata = isassigned(icon) > 0 ? GUIMetadata(GlobalRef(mod, name), icon[]) :
                    GUIMetadata(GlobalRef(mod, name))
@@ -108,10 +110,11 @@ function _model_macro(mod, name, expr, isconnector)
         :($Setfield.@set!(var"#___sys___".connector_type=$connector_type(var"#___sys___"))))
 
     !(c_evts==[]) && push!(exprs.args,
-        :($Setfield.@set!(var"#___sys___".continuous_events=$c_evts)))
+        :($Setfield.@set!(var"#___sys___".continuous_events=$continuous_events)))
 
     !(d_evts==[]) && push!(exprs.args,
-        :($Setfield.@set!(var"#___sys___".discrete_events=$d_evts)))
+        :($Setfield.@set!(var"#___sys___".discrete_events=$discrete_events)))
+
 
     f = :($(Symbol(:__, name, :__))(; name, $(kwargs...)) = $exprs)
     :($name = $Model($f, $dict, $isconnector))
