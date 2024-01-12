@@ -50,8 +50,8 @@ function _model_macro(mod, name, expr, isconnector)
     push!(exprs.args, :(parameters = []))
     push!(exprs.args, :(systems = ODESystem[]))
     push!(exprs.args, :(equations = Equation[]))
-    push!(exprs.args, :(continuous_events = []))
-    push!(exprs.args, :(discrete_events = []))
+    #push!(exprs.args, :(continuous_events = []))
+    #push!(exprs.args, :(discrete_events = []))
 
     Base.remove_linenums!(expr)
     for arg in expr.args
@@ -90,8 +90,8 @@ function _model_macro(mod, name, expr, isconnector)
     push!(exprs.args, :(push!(parameters, $(ps...))))
     push!(exprs.args, :(push!(systems, $(comps...))))
     push!(exprs.args, :(push!(variables, $(vs...))))
-    push!(exprs.args, :(push!(continuous_events, $(c_evts...))))
-    push!(exprs.args, :(push!(discrete_events, $(d_evts...))))
+    #push!(exprs.args, :(push!(continuous_events, $(c_evts...))))
+    #push!(exprs.args, :(push!(discrete_events, $(d_evts...))))
     
     gui_metadata = isassigned(icon) > 0 ? GUIMetadata(GlobalRef(mod, name), icon[]) :
                    GUIMetadata(GlobalRef(mod, name))
