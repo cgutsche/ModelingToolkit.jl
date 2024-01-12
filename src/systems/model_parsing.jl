@@ -110,10 +110,10 @@ function _model_macro(mod, name, expr, isconnector)
         :($Setfield.@set!(var"#___sys___".connector_type=$connector_type(var"#___sys___"))))
 
     !(c_evts==[]) && push!(exprs.args,
-        :($Setfield.@set!(var"#___sys___".continuous_events=$SymbolicContinuousCallback([$(c_evts...)]))))
+        :($Setfield.@set!(var"#___sys___".continuous_events=$SymbolicContinuousCallback.($c_evts))))
 
     !(d_evts==[]) && push!(exprs.args,
-        :($Setfield.@set!(var"#___sys___".discrete_events=$SymbolicDiscreteCallback([$(d_evts...)]))))
+        :($Setfield.@set!(var"#___sys___".discrete_events=$SymbolicDiscreteCallback.($d_evts))))
 
 
     f = :($(Symbol(:__, name, :__))(; name, $(kwargs...)) = $exprs)
