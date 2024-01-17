@@ -636,6 +636,7 @@ function parse_discrete_events!(d_evts, dict, body)
     dict[:discrete_events] = []
     Base.remove_linenums!(body)
     for arg in body.args
+        push!(d_evts, arg)
         push!(dict[:discrete_events], readable_code.(d_evts)...)
     end
 end
