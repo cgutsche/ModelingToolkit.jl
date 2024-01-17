@@ -92,7 +92,6 @@ function _model_macro(mod, name, expr, isconnector)
     gui_metadata = isassigned(icon) > 0 ? GUIMetadata(GlobalRef(mod, name), icon[]) :
                    GUIMetadata(GlobalRef(mod, name))
 
-
     sys = :($ODESystem($Equation[equations...], $iv, variables, parameters;
         name, systems, gui_metadata = $gui_metadata))
 
@@ -105,12 +104,15 @@ function _model_macro(mod, name, expr, isconnector)
     isconnector && push!(exprs.args,
         :($Setfield.@set!(var"#___sys___".connector_type=$connector_type(var"#___sys___"))))
 
-    !(c_evts==[]) && push!(exprs.args,
-        :($Setfield.@set!(var"#___sys___".continuous_events=$SymbolicContinuousCallback.([$(c_evts...)]))))
+    !(c_evts == []) && push!(exprs.args,
+        :($Setfield.@set!(var"#___sys___".continuous_events=$SymbolicContinuousCallback.([
+            $(c_evts...),
+        ]))))
 
-    !(d_evts==[]) && push!(exprs.args,
-        :($Setfield.@set!(var"#___sys___".discrete_events=$SymbolicDiscreteCallback.([$(d_evts...)]))))
-
+    !(d_evts == []) && push!(exprs.args,
+        :($Setfield.@set!(var"#___sys___".discrete_events=$SymbolicDiscreteCallback.([
+            $(d_evts...),
+        ]))))
 
     f = :($(Symbol(:__, name, :__))(; name, $(kwargs...)) = $exprs)
     :($name = $Model($f, $dict, $isconnector))

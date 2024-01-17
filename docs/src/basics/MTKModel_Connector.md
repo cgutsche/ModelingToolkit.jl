@@ -179,7 +179,7 @@ using ModelingToolkit
     @variables begin
         x(t)
         y(t)
-    end 
+    end
     @equations begin
         x ~ k * D(x)
         D(y) ~ -k
@@ -206,13 +206,13 @@ using ModelingToolkit
     @variables begin
         x(t)
         y(t)
-    end 
+    end
     @equations begin
         x ~ k * D(x)
         D(y) ~ -k
     end
     @discrete_events begin
-        (t == 1.5) => [x ~ 5, y ~ 5]
+        (t == 1.5) => [x ~ x + 5, y ~ 5]
     end
 end
 ```
